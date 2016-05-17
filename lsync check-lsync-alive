@@ -8,4 +8,5 @@ CHECKIPS=$(/bin/manage-slaves-lsync -c | awk '{print $4}')
 
 for IP in $CHECKIPS; do
 nc -zw3 $IP 22 || /bin/manage-slaves-lsync -r $IP
+sleep 10
 done
