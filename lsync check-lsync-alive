@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# This script will be used to check all hosts on lsync configuration, if the host doesnt exist, it will be removed from the configuration
+
+RESTARTLSYNC="/etc/init.d/lsyncd restart"
+CHECKIPS=$(/bin/manage-slaves-lsync -c | awk '{print $4}')
+
+
+for IP in $CHECKIPS; do
+nc -zw3 $IP 22 || /bin/manage-slaves-lsync -r $IP
+done
