@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#this script should be run from the slave server, it configures itself with lsyncd and connects to the master to execute a binary so it is added to the master lsync file
+
+MASTERIP="10.50.1.79"
+PRIVIP=$(/sbin/ifconfig | grep "inet addr" | awk -F: '{print $2}' | awk '{print $1}' | grep -v 127.0.0.1)
+
+
+echo "Sending data to Master to add slave"
+ssh -i /root/lsyncd.pem root@$MASTERIP manage-slaves-lsync -i $PRIVIP
+sleep 10
+
+connect_to_master(){
+
+echo "configuring Lsync"
+
+echo "
+settings{
+        delay = 1,
+        maxProcesses = 3,
+        logfile = \"/var/log/lsyncd.log\",
+}
+
+sync{
+        default.rsync,
+        source=\"/var/www/sites\",
+        target=\"root@$MASTERIP:/var/www/sites/\",
+
+        rsync = {
+        compress = true,
+        acls = true,
+        verbose = true,
+        owner = true,
+        group = true,
+        perms = true,
+        rsh = \"/usr/bin/ssh -p 22 -o StrictHostKeyChecking=no -i /root/lsyncd.pem -l root\"
+    }
+}" > /etc/lsyncd/lsyncd.conf.lua
+
+echo "Restarting Lsync"
+
+/etc/init.d/lsyncd restart
+}
+sleep 30
+connect_to_master
+
+#echo "Sending data to Master to add slave"
+
+#ssh -i /root/lsyncd.pem root@$MASTERIP manage-slaves-lsync -i $PRIVIP
