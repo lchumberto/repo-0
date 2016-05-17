@@ -1,0 +1,87 @@
+#!/bin/bash
+
+usage(){
+echo "This script is being called from the slave server, this script should be located in the master server
+Usage:
+            -i Add configuration with the Private IP
+            Example: $0 -i 10.1.1.1
+            -h Show usage
+            -c Check slaves on lsync
+            -r Remove slave on lsync config file
+                    Example: $0 -r 10.1.1.1
+"
+}
+
+checkslaves(){
+grep "Server slave" /etc/lsyncd/lsyncd.conf.lua
+}
+
+addslave(){
+echo "Adding $SLAVEIP to Lsync"
+
+echo "--- Server slave $SLAVEIP
+sync{
+                default.rsync,
+                source=\"/var/www/sites\",
+                target=\"root@$SLAVEIP:/var/www/sites/\",
+
+                rsync = {    
+                compress = true,
+                acls = true,
+                verbose = true,
+                owner = true,
+                group = true,
+                perms = true,
+                rsh = \"/usr/bin/ssh -p 22 -o StrictHostKeyChecking=no -i /root/lsyncd.pem -l root\"
+        }
+}
+
+sync{
+                default.rsync,
+                source=\"/etc/nginx/\",
+                target=\"root@$SLAVEIP:/etc/nginx/\",
+
+                rsync = {
+               compress = true,
+                acls = true,
+                verbose = true,
+                owner = true,
+                group = true,
+                perms = true,
+                rsh = \"/usr/bin/ssh -p 22 -o StrictHostKeyChecking=no -i /root/lsyncd.pem -l root\"
+        }
+
+}
+--- end block $SLAVEIP" >> /etc/lsyncd/lsyncd.conf.lua
+
+service lsyncd restart
+}
+
+removeslave(){
+sed -i "/Server slave $SLAVEIP/,/end block $SLAVEIP/ d" /etc/lsyncd/lsyncd.conf.lua
+service lsyncd restart
+}
+
+# Parse options
+[ $# -eq 0 ] && usage
+while getopts ":hci:r:" opt ; do
+    case $opt in
+        i)
+                SLAVEIP="$OPTARG"
+                addslave
+                ;;
+        r)
+                SLAVEIP="$OPTARG"
+                removeslave
+                ;;
+        h)
+                usage
+                ;;
+        c)
+                checkslaves
+                ;;
+        *)
+                usage
+                ;;
+    esac
+done
