@@ -1,0 +1,64 @@
+#! /bin/bash
+
+# Variable to get the time.
+tim=$(date +%F)
+# Set the days to delete snapshots.
+erase=13
+
+# Create Array with ID from its Volumes.
+# Add other volume if you want create other spanshot.
+snap=(vol-e5987120 vol-7ad88f88)
+
+# Name of the instance in order with snap variable.
+instance=(i-72ca93fa9 i-f7add77d)
+loop=0
+
+snapComp=($(aws ec2 describe-snapshots --filter Name=description,Values="Snapshot created*" | grep -i starttime | awk '{print $2}' |cut -d, -f1 | sed 's/"//g' | cut -c-10))
+snapId=($(aws ec2 describe-snapshots --filter Name=description,Values="Snapshot created*" | grep -i snapshotid | awk '{print $2}' |cut -d, -f1 | sed 's/"//g'))
+verification=($(aws ec2 describe-snapshots --filter Name=description,Values="Snapshot created at $tim *" | grep -i snapshotid | awk '{print $2}' |cut -d, -f1 | sed 's/"//g'))
+
+# Variables Snapshot.
+month=$(echo $snapComp | cut -c6,7)
+# sort -n| tail -n1
+day=$(echo $snapComp | cut -c9,10 | sort -n| tail -n1)
+
+# System Variables.
+monthSystem=$(date +%F| cut -c6,7)
+daySystem=$(date +%F| cut -c9,10)
+
+# Subtract Snapshot day to system day.
+# If is biggest than "erase" variable (3 days)
+
+# CREATE SNAPSHOTS.
+# Conditional, if one snapshot is created this day, so don't repeat the action again.
+if [ "$verification" == "" ]; then
+        for i in ${snap[@]}; do
+                # Start create the snapshots.
+                echo "Start create snapshot $snap from ${instance[loop]}"
+                aws ec2 create-snapshot --volume-id $i --description "Snapshot created at $tim from volume ${snap[loop]} and instance name ${instance[loop]}."
+                let "loop++"
+        done
+fi
+
+# DELETE SNAPSHOTS.
+it=0
+# If syetem month system is diferent to snapshot month.
+# Is necessary other kind of operation than if it was the same month.
+if [ "$day" != "" ]; then
+        snapMont=$(date -d "$month/1 + 1 month - 1 day" "+%b - %d" | awk '{print $3}')
+        if [ "$month" != "$monthSystem" ]; then
+                days=$(expr $snapMont - $day + $daySystem)
+        fi
+        if [ "$month" == "$monthSystem" ]; then
+                days=$(expr $daySystem - $day)
+        fi
+fi
+echo "$days"
+# If is on the same month, only check system time and snapshots time and compare if the time set in "Erase" is equals or bigger than.
+if [ $days -ge  $erase ]; then
+                for a in ${snapComp[@]}; do
+                        echo "Delete Snapshot: ${snapId[it]}"
+                        aws ec2 delete-snapshot --snapshot-id ${snapId[it]}
+                        let "it++"
+                done
+fi
