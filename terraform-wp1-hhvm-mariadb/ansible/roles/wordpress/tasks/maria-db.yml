@@ -20,3 +20,6 @@
   with_items:
     - mariadb-server
     - mariadb-client
+  notify: 
+    - Restart Mysql
+
