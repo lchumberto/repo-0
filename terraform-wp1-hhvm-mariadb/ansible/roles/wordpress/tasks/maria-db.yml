@@ -11,15 +11,20 @@
   apt: update_cache=yes
   when: mariadb_list.changed == True or mariadb_key.changed == True
 
-- name: Unattended package installation
-  shell: export DEBIAN_FRONTEND=noninteractive
-  changed_when: false
+#- name: Unattended package installation
+#  shell: export DEBIAN_FRONTEND=noninteractive
+#  changed_when: false
 
 - name: Install MariaDB
   apt: pkg={{ item }} state=present
   with_items:
     - mariadb-server
     - mariadb-client
+
+- name: Creating database 
+  mysql_db: name=test-db state=present
+  mysql_user: name=test-user password=12345 priv=*.*:ALL state=present
   notify: 
     - Restart Mysql
+
 
