@@ -2,5 +2,5 @@
 - include: rds.yml
 - include: nginx.yml
 - include: php5.yml
-- include: deploy.yml
 - include: maria-db.yml
+- include: deploy.yml

@@ -22,8 +22,8 @@
     - mariadb-client
 
 - name: Creating database 
-  mysql_db: name=test-db state=present
-  mysql_user: name=test-user password=12345 priv=*.*:ALL state=present
+  mysql_db: name={{ db_name }} state=present
+  mysql_user: name={{ db_username }} password={{ db_password }} priv=*.*:ALL state=present
   notify: 
     - Restart Mysql
 
