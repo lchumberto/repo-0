@@ -1,0 +1,7 @@
+---
+ELB_DNS_NAME: highperformance-dev-elb-423967233.us-west-1.elb.amazonaws.com
+WEBSITE_NAME: highperformance.com
+DB_HOSTNAME: highperformance-dev.cfx9on4izmyo.us-west-1.rds.amazonaws.com
+DB_NAME: wordpress
+DB_PASSWORD: test1234567
+DB_USERNAME: root

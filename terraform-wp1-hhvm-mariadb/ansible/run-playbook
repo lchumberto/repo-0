@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ "$(dirname $0)" != "." ]; then
+echo "to run the script you need to be located in the ansible directory and run the playbook as ./run-playbook!"
+exit 0
+else
+echo "everything correct.."
+fi
+
+read -p "Enter the name of your previously made domain in terraform (remember, without .com): " DOMAIN
+read -p "Enter the path of your ssh key: " SSHPATH
+
+ansible-playbook -e@../terraform-aws/$DOMAIN-dev.yml --private-key $SSHPATH site.yml

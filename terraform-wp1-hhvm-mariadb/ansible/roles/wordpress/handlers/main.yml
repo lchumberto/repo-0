@@ -1,0 +1,15 @@
+---
+ - name: Restart Nginx
+   service: name=nginx state=restarted
+
+ - name: Restart Mysql
+   service: name=mysql state=restarted
+   
+ - name: hhvm reload
+   service: name=hhvm state=reloaded
+
+ - name: hhvm restart
+   service: name=hhvm state=restarted
+
+ - name: update-rc hhvm
+   command: update-rc.d hhvm defaults
