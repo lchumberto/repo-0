@@ -18,6 +18,10 @@ resource "aws_instance" "ec2" {
   user_data = "${var.user_data}"
 }
 
+provisioner "local-exec" {
+    command = "echo WEBSITE_NAME: ${var.name}.com >> ${var.name}-${var.environment}.yml; echo DB_HOSTNAME: ${var.db_hostname} >> ${var.name}-${var.environment}.yml; echo DB_NAME: ${var.db_name} >> ${var.name}-${var.environment}.yml; echo DB_PASSWORD: ${var.db_password} >> ${var.name}-${var.environment}.yml; echo DB_USERNAME: ${var.db_username} >> ${var.name}-${var.environment}.yml"
+  }
+
 output "ec2_id" {
   value = "${join(",", aws_instance.ec2.*.id)}"
 }
